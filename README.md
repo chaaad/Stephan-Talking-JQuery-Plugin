@@ -1,6 +1,6 @@
 ###Stephen Talking - jQuery plugin
 
-is a lightweight javascript speech generator - there also is a [non jQuery version](https://github.com/chaaad/Stephan-Talking)
+is a lightweight (5kb) javascript speech generator - there also is a [non jQuery version](https://github.com/chaaad/Stephan-Talking)
 
 - this is based on [Tiny Speech Synth in JavaScript](http://heckmeck.de/demoscene/tiny-speech-synth-js/)
 
