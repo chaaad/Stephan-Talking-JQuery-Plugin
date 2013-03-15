@@ -12,6 +12,7 @@ in fact, only phonemes are stored and they are very basic, great simple design u
 
 this code is free to use for whatever - tested and works on web FF, Webkit - wont work on IE 9, maybe IE 10 will
 
+see [demo](http://alkemis.com/jQ_stephanTalking/)
 
 HTML:
 
