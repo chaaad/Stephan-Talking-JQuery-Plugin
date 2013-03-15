@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Stephen Talking</title>
+
+<style>
+BODY {font:10px verdana; }
+INPUT.key {background:#ff9; }
+SPAN.phoneme {font-weight:bold; color:red; }
+PRE {font-size:12px; }
+
+DIV#examples>P {margin:0; };
+
+</style>
+
+
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+
+<script src="js/jq_stephanTalking.min.js"></script>
+<!--script src="js/jq_stephanTalking.js"></script--><!--source code-->
+
+<!--plugins for a plugin - translators for Stephan Talking-->
+<script src="js/jq_stephanTalking_t-numbers.js"></script>
+<script src="js/jq_stephanTalking_t-fancyNumbers.js"></script>
+<script src="js/jq_stephanTalking_t-nato.js"></script>
+
+</head>
+<body>
+
+
+
+
+<h1>Stephen Talking - jQuery plugin</h1>
+
+<p>is a lightweight javascript speech generator -  there also is a <a href="../st/">non jQuery version</a></p>
+<p>- this is based on <a href=" http://heckmeck.de/demoscene/tiny-speech-synth-js/">Tiny Speech Synth in JavaScript</a></p>
+<p>- - that was based on <a href="http://www.pouet.net/prod.php?which=50530/">Tiny Speech Synth</a> (C++)</p>
+<p>- - - there is no attempt to apply any complex text-to-speech rules, just see the letters, say the letters</p>
+<p>- - - in fact, only phonemes are stored and they are very basic, great simple design using formants by 'stan 1901'</p>
+<p>this code is free to use for whatever - tested and works on web FF, Webkit - wont work on IE 9, maybe IE 10 will</p>
+
+<br>
+<form onsubmit="return false; ">
+
+overall: pitch <input id="pitch_input" size="3" type="range" min="0" value="10" max="100"/>
+| cadence<input id="cadence_input" size="3" type="range" min="0" value="45" max="100"/>
+| volume<input id="vol_input" size="3" type="range" min="0" value="60" max="100" />
+... all ranges 0 to 100
+<hr>
+
+<textarea id="text_ta" cols="80" rows="10" spellcheck="false">
+nO ekstrnal kalls - just pUr javaskript
+</textarea>
+<br>
+
+translate numbers<input id="t_numbers_input" type="checkbox" checked/>
+<button onclick="process_text(); ">speak text</button>
+| <button onclick="process_text('convert'); ">convert to data</button> | 'convert to data' expands controls to each individual character
+</form>
+
+valid characters: <span id="phonemes_span" class="phoneme"></span> | all vowels have 2 forms (uppercase=hard, lowercase=soft)
+<br>
+not available: <span class="phoneme">q</span> (qu->kw) <span class="phoneme">x</span>(ks)
+<br>
+<span class="phoneme">c</span> is tricky, use c when ch, otherwise replace with s or k
+| to insert short pause use _ | even shorter pause use -<br>
+do <a href="#crude fix" onclick="crude_fix(); return false; ">CRUDE FIX</a> on raw text
+<br>
+<br>
+
+<form id="speech_objs_form" onsubmit="return false; " style="display:none; ">
+<hr>
+<button onclick="process_objs(); ">speak data</button>
+| <button onclick="process_objs('print'); ">convert to json</button>
+| pitch range is -50 .. 0 .. 50
+| vol range is -9 .. 0 .. 10
+| dur range is -5 .. 0 .. 100 (dur does +- to the default duration, which is 1 to 4, but wont fall below 1)
+| <a href="#clear" onclick="display('speech_objs_form', 'none'); return false; ">CLOSE DATA VIEW</a>
+<div id="speech_objs_div"></div>
+</form>
+
+<form id="speech_json_form" onsubmit="return false; " style="clear:both; ">
+<hr>
+<textarea id="json_ta" cols="80" rows="3">
+[{"k":"I","v":1.3,"d":3},{"k":"m"},{"k":""},{"k":"s"},{"k":"t"},{"k":"e"},{"k":"v"},{"k":"a"},{"k":"n"},{"k":""},{"k":"t"},{"k":"a"},{"k":"w"},{"k":"k"},{"k":"i"},{"k":"n"},{"k":"g"},{"k":""}]
+</textarea>
+<br>
+<button onclick="speak_json(); ">speak json</button>
+| p(itch) range is -50 .. 0 .. 50
+| v(ol) range is 0.1 .. 0 .. 2.0
+| d(ur) range is -5 .. 0 .. 100 (d does +- to the default duration, which is 1 to 4, but wont fall below 1)
+</form>
+
+<hr>
+text input should be in the form of 'stephantalk' - using normal (raw) text as input will give poor results (latin character languages are only phonetic-ish).
+<br>
+stephantalk is 100% phonetic with a small, plain ascii char set. pretty simple to master.
+<br>
+to 'fix' raw text: 1-lowercase everything, 2-replace q and x, 3-replace all c with k or s except when ch, 4-uppercase the hard vowels, 5-tweak
+<br>
+'CRUDE FIX' does steps 1 and 2, then halfasses step 3 (makes all non-ch c into k)
+
+<br>
+<br>
+more examples of stephantalk:
+<div id="examples" style="color:orange; ">
+A bE sE dE E ef jE Ach I jA kA el em en O pE kwU ar es tE yU vE dublyU eks wI zE
+-
+adams boston chikagO denvr EsE frank jorg henrE Ida jon_ king linkin mir-E nU_york O-shen pEtr kwEEn rogr shU-gr tomas Union viktor wil-yam eks-rA yung_ zerO
+-
+jan_U_er_E feb_bU_er_E march April mAA_ jUn jUlI orgust septembr oct_tO_br nOvembr dEsembr
+-
+mon_dA tUs_dA wens_dA thurs_dA frI_dA satur_dA sun_dA
+-
+- span-ish - serO UnO dOs tres kwatrO sinkO sE-As sE_et_A O_chO nE_ev_es dE_es
+- ja-pan_Es - zerO EchE nE_ san_ yOn_ gO_ lUkU nana hachE kwU_ jU_
+- can-ton_Es - ling_ yut yE sam sE_ Ung lUk chut baht gawl sup
+-
+jA_kwir_E plug_in
+</div>
+
+
+<!--TEMPLATE-->
+<div id="template_div" style="display:none; ">
+	<div style="float:left; padding:2px; "
+	key<br>
+	<input class="key" size="1"/><br>
+	pitch<br>
+	<input class="pitch" size="1" type="range" min="-50" max="50"/><br>
+	vol<br>
+	<input class="volume" size="1" type="range" min="-9" max="10"/><br>
+	dur<br>
+	<input class="duration" size="1" type="range" min="-5" max="100"/><br>
+	<br>
+	</div>
+</div>
+
+<hr>
+
+v1
+<br>
+for developers:
+<br>
+download jQ plugin (under 5k): <a href="js/jq_stephanTalking.min.js">jq_stephanTalking.min.js</a> source: <a href="js/jq_stephanTalking.js">jq_stephanTalking.js</a> readme: <a href="txt/j_st_readme.txt">j_st_readme.txt</a>
+<br>
+<br>
+extend Stephan Talking jQ with translators:
+<br>
+readme: <a href="txt/j_st_translator_readme.txt">j_st_translator_readme.txt</a>
+<br>
+source:
+<a href="js/jq_stephanTalking_t-numbers.js">jq_stephanTalking_t-numbers.js</a>
+<a href="js/jq_stephanTalking_t-fancyNumbers.js">jq_stephanTalking_t-fancyNumbers.js</a>
+<a href="js/jq_stephanTalking_t-nato.js">jq_stephanTalking_t-nato.js</a>
+<br>
+<br>
+all files: <a href="/zip/jq_st.zip">jq_st.zip</a>
+
+<hr>
+<pre>
+more demos:
+
+<a href="#" onclick="demo_event(this); return false; ">event</a>
+call multiple times, consectutively - using audio 'ended' event as trigger
+
+<a href="#" onclick="demo_timer(this); return false; ">timer</a>
+call multiple times with a timer
+
+<a href="#" onclick="demo_clock(this); return false; ">clock</a>
+call multiple times with a timer saying the time, every 15 secs
+
+<a href="#" onclick="demo_keyboard(this); return false; ">keyboard</a>
+turn keys on bottom row of keyboard (z,x,c,v,b,n,m) into triggers (toggle on/off)
+
+<a href="#" onclick="demo_nato(this); return false; ">nato</a>
+speak text input in the nato phonetic alphabet (alpha, bravo, charlie, etc)
+</pre>
+
+
+
+
+
+
+<script>
+var template_html_str= document.getElementById("template_div").innerHTML;
+//template_html_str= template_html_str.substring(4, template_html_str.length -4);
+
+var speech_objs_DIV= document.getElementById("speech_objs_div")
+var json_TA= document.getElementById("json_ta")
+
+//FF doesnt have range input
+var rangeCapable_flag= document.getElementById("pitch_input").type=="range";
+
+function crude_fix() {
+	var el= document.getElementById("text_ta");
+	var text= el.value.toLowerCase();
+	text= text.replace(/qu/g,"kw");
+	text= text.replace(/x/g,"ks");
+
+	text= text.replace(/ch/g,"~h"); //keep ch
+	text= text.replace(/c/g,"k");
+	text= text.replace(/~h/g,"ch"); //keep ch
+
+	el.value= text;
+}
+
+function process_text(convert_flag) {
+	var text= document.getElementById("text_ta").value;
+
+	if (document.getElementById("t_numbers_input").checked) {
+
+		//if ($.stephanTalking.translate && $.stephanTalking.translate.fancyNumbers) text= $.stephanTalking.translate.fancyNumbers(text);
+
+		if ($.stephanTalking.translate && $.stephanTalking.translate.numbers) text= $.stephanTalking.translate.numbers(text);
+		else console.error("'numbers' translator (jq_stephanTalking_t-numbers.js) not loaded");
+	}
+
+	if (!convert_flag) {
+		speak(text);
+
+	} else {
+		display("speech_objs_form", "block");
+
+		var L= text.length;
+		var html_str= "";
+
+		for (var i=0; i<L; i++) html_str+= template_html_str;
+		speech_objs_DIV.innerHTML= html_str;
+
+		var INPUTS= speech_objs_DIV.querySelectorAll("INPUT.key");
+		for (var i=0; i<L; i++) INPUTS[i].value= text[i];
+
+		if (rangeCapable_flag) { //have to set otherwise value is the 'middle'
+			INPUTS= speech_objs_DIV.querySelectorAll("INPUT.volume");
+			for (i=0; i<L; i++) INPUTS[i].value= 0;
+
+			INPUTS= speech_objs_DIV.querySelectorAll("INPUT.duration");
+			for (i=0; i<L; i++) INPUTS[i].value= 0;
+
+		}
+
+
+	}
+}
+
+function display(id_str, display_str) {
+	document.getElementById(id_str).style.display= display_str;
+}
+
+function process_objs(convert_flag) {
+	var
+		text_objs_array= [],
+
+		DIVS= speech_objs_DIV.querySelectorAll("DIV"),
+		obj,
+
+		pitch, volume, duration
+	;
+
+	for (var i=0, DIV; DIV= DIVS[i]; i++) {
+		obj= {k: DIV.querySelector("INPUT.key").value.trim()};
+
+		if (obj.k) {
+			pitch= range_num(DIV.querySelector("INPUT.pitch"), -50, 50);
+			if (pitch) obj.p= pitch;
+
+			volume= range_num(DIV.querySelector("INPUT.volume"), -9, 10);
+			if (volume) obj.v= (10 +volume) /10;
+		}
+
+		duration= range_num(DIV.querySelector("INPUT.duration"), -5, 100);
+		if (duration) obj.d= duration;
+
+		text_objs_array.push(obj);
+	}
+
+	if (convert_flag) json_TA.value= JSON.stringify(text_objs_array);
+	else speak(text_objs_array);
+}
+
+
+function speak(input) {
+	var
+		pitch= 50  +validate("pitch_input")  *4,  // 50 | 75  | 450
+		cadence= 1  -validate("cadence_input") *.007, //1.0 | 0 8 | 0.3
+		vol=  0.3 +validate("vol_input")   *.007 //0.3 | 0.7 | 1.0
+	;
+
+	$.stephanTalking.speak({i:input, p:pitch, c:cadence, v:vol});
+
+
+
+
+	function validate(id_str) {
+		var el= document.getElementById(id_str);
+		return range_num(el, 0, 100);
+	}
+}
+
+function speak_json() {
+	speak(JSON.parse(json_TA.value));
+}
+
+function range_num(el, min, max) {
+	var v= el.value *1;
+
+	if (isNaN(v) || v>max) v= max;
+	else if (v<min) v= min;
+
+	el.value= rangeCapable_flag ? v : (v || " ");
+	return v;
+}
+
+
+
+
+
+
+//examples_speak
+(function() {
+	var div_JQ= $("DIV#examples").on("click", "A", function(event) {$("#text_ta").val($(this).parent().text().slice(0,-4)); process_text(); });
+	var str= div_JQ.text();
+	div_JQ.empty();
+	jQuery.each(str.split("\n"), function(i, str) {div_JQ.append($("<p/>").html(str).append(str.length>1?" <a href=#talk>talk</a>":"")); });
+}) ();
+
+
+//TEMP for DEV - get latest phonemes data from stub file - database TBD
+jQuery.ajax({
+	url: "../js/phonemes.js", //not phonemes.json because wserver not set up for ".json" extension
+	dataType: "text", //all jQuery JSON calls expects official JSON notation - eh
+	success: function(data) {
+		var pho_obj= eval("(" +data +")");
+
+		$.stephanTalking.setting({phonemes:pho_obj});
+		console.log("phonemes overridden");
+
+		render_phonemes(jQuery.stephanTalking.settings.phonemes);
+	},
+	error: function() {
+		console.log("load 'phonemes.js' error can be ignored");
+		render_phonemes(jQuery.stephanTalking.settings.phonemes);
+	}
+});
+
+function render_phonemes(pho_obj) {
+	var str= "";
+	for (var key in pho_obj) str+= key + " ";
+	document.getElementById("phonemes_span").innerHTML= str;
+}
+
+
+
+
+
+
+
+//demos
+$.stephanTalking.speak(" "); //init to access $.stephanTalking.audio_el (it lazy inits)
+
+function log_demo(el) {
+	console.log("DEMO ", el.text);
+}
+
+function demo_event(el) {
+	log_demo(el);
+
+	var demo_arr= "A bE sE dE E ef end__demO__Event".split(" ");
+	var i= 0;
+
+	function handler() {
+		i++;
+		if (demo_arr[i]) step();
+		else end();
+	};
+
+	$.stephanTalking.audio_el.addEventListener("ended", handler, false);
+
+	step(); //start it
+
+	function step() {
+		console.log("step", i, demo_arr[i]);
+
+		speak(demo_arr[i]);
+		//$.stephanTalking.speak(demo_arr[i]);
+	}
+
+	function end() {
+		$.stephanTalking.audio_el.removeEventListener("ended", handler, false);
+	}
+}
+
+function demo_timer(el) {
+	log_demo(el);
+
+	var demo_arr= "fIv for thrE tU won bUUUm".split(" ");
+	var i= 0;
+
+	step(); //1st one
+	var timer= setInterval(step, 1000); //every 1 sec
+
+	function step() {
+		console.log("step", i, demo_arr[i]);
+
+		speak(demo_arr[i]);
+		//$.stephanTalking.speak(demo_arr[i]);
+
+		i++;
+		if (!demo_arr[i]) end();
+	}
+
+	function end() {
+		clearInterval(timer);
+	}
+}
+
+var timer_3;
+function demo_clock(el) {
+	log_demo(el);
+
+	if (!$.stephanTalking.translate || !$.stephanTalking.translate.fancyNumbers) return console.error("fancyNumbers translator not loaded")
+
+	if (timer_3) clearInterval(timer_3);
+
+	var ct= 0;
+
+	step(); //1st one
+	timer_3= setInterval(step, 15000); //every 15 secs
+
+	var d, h, m, s, str;
+	function step() {
+		if (ct>4) { //dont run forever
+			end();
+			return;
+		}
+
+		d= new Date();
+
+		h= d.getHours();
+		if (h>12) h-= 12;
+		if (!h) h= "twelv ";
+
+		m= d.getMinutes();
+		if (!m) m= " O_klok ";
+		else if (m<10) m= "O" +m;
+
+		str= h +":" +m;
+
+		s= d.getSeconds();
+		if (s) str+= "and" +s +"seconds";
+
+		str= $.stephanTalking.translate.fancyNumbers(str);
+		console.log("step", ct, str);
+		ct++;
+
+		speak(str);
+		//$.stephanTalking.speak({
+		//	i:str,
+		//	p:100,
+		//	c:.4
+		//});
+	}
+
+	function end() {
+		speak("end_demO_klok");
+		//$.stephanTalking.speak("end_demO_klok");
+
+		clearInterval(timer_3);
+	}
+}
+
+
+var demo_keyboard_flag;
+
+function demo_keyboard(el) {
+	log_demo(el);
+	demo_keyboard_flag= !demo_keyboard_flag;
+	speak("demO kE-bord is " +(demo_keyboard_flag ? "on" : "off"));
+
+	if (document.body.onkeydown) return; //init once
+
+	var pitch;
+	var pitch_map= {
+		90: 50,  // z
+		88: 60,  // x
+		67: 70,  // c
+		86: 80,  // v
+		66: 90,  // b
+		78: 100, // n
+		77: 110  // m
+	};
+
+	var sound_obj= {
+		i:"helO"
+	};
+
+	document.body.onkeydown= function(event){
+		if (!demo_keyboard_flag) return; //->
+
+		event= event || window.event;
+		var keycode= event.charCode || event.keyCode;
+		if (pitch=pitch_map[keycode]) {
+			sound_obj.p= pitch;
+			$.stephanTalking.speak(sound_obj);
+		}
+	}
+
+}
+
+function demo_nato(el) {
+	log_demo(el);
+
+	speak($.stephanTalking.translate.nato(document.getElementById("text_ta").value));
+}
+
+</script>
+</body></html>
