@@ -63,7 +63,7 @@ jQuery.extend({
 				z: { f:[ 5,  28, 80], w:[ 10,   5, 10], dur:4, vol: 5, osc:0, plo:0 }  //dur 3->4 //vol 3->5
 			},
 
-			space_ltrs: " ..\n",
+			space_ltrs: " .,\n",
 			quarter_spc_ltr: "_",
 			eighth_spc_ltr: "-",
 		},
