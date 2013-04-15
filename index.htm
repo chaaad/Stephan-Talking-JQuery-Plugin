@@ -32,7 +32,9 @@ DIV#examples>P {margin:0; };
 
 <h1>Stephen Talking - jQuery plugin</h1>
 
-<p>is a lightweight javascript speech generator -  there also is a <a href="../st/">non jQuery version</a></p>
+<p>is a lightweight javascript speech generator -  there also is a <a href="../st/">non jQuery version</a>
+	<a style="float: right; " href="/">alkemis</a>
+</p>
 <p>- this is based on <a href=" http://heckmeck.de/demoscene/tiny-speech-synth-js/">Tiny Speech Synth in JavaScript</a></p>
 <p>- - that was based on <a href="http://www.pouet.net/prod.php?which=50530/">Tiny Speech Synth</a> (C++)</p>
 <p>- - - there is no attempt to apply any complex text-to-speech rules, just see the letters, say the letters</p>
@@ -60,10 +62,14 @@ translate numbers<input id="t_numbers_input" type="checkbox" checked/>
 
 valid characters: <span id="phonemes_span" class="phoneme"></span> | all vowels have 2 forms (uppercase=hard, lowercase=soft)
 <br>
-not available: <span class="phoneme">q</span> (qu->kw) <span class="phoneme">x</span>(ks)
+not available:
+<span class="phoneme">q</span> use 'kw'
+| <span class="phoneme">x</span> use 'ks'
+| no vowel form of <span class="phoneme">y</span> use 'I'
+| <span class="phoneme">c</span> is tricky, use 'c' when 'ch', otherwise use 's' or 'k'
 <br>
-<span class="phoneme">c</span> is tricky, use c when ch, otherwise replace with s or k
-| to insert short pause use _ | even shorter pause use -<br>
+to insert short pause use '_' | even shorter pause use '-'
+<br>
 do <a href="#crude fix" onclick="crude_fix(); return false; ">CRUDE FIX</a> on raw text
 <br>
 <br>
@@ -431,7 +437,7 @@ function demo_clock(el) {
 
 	var d, h, m, s, str;
 	function step() {
-		if (ct>4) { //dont run forever
+		if (ct>3) { //run only 4 times
 			end();
 			return;
 		}
@@ -449,7 +455,7 @@ function demo_clock(el) {
 		str= h +":" +m;
 
 		s= d.getSeconds();
-		if (s) str+= "and" +s +"seconds";
+		if (s) str+= "and" +s +"second" +(s==1 ? "" : "s");
 
 		str= $.stephanTalking.translate.fancyNumbers(str);
 		console.log("step", ct, str);
