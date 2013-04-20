@@ -177,11 +177,14 @@ multiple calls triggered by the audio 'ended' event
 <a href="#" onclick="demo_clock(this); return false; ">clock</a>
 multiple calls triggered by a 15 sec timer saying the time
 
-<a href="#" onclick="demo_keyboard(this); return false; ">keyboard</a>
+<a href="#" onclick="demo_pitchedKeyboard(this); return false; ">pitched keyboard</a>
 turn keys on bottom row of keyboard (z,x,c,v,b,n,m) into triggers (toggle on/off)
 
 <a href="#" onclick="demo_nato(this); return false; ">nato</a>
 takes text from 1st textbox and says it in the nato phonetic alphabet (alpha, bravo, charlie, etc)
+
+<a href="#" onclick="demo_natoKeyboard(this); return false; ">nato keyboard</a>
+turn letter keys into triggers to their corresponding nato word (toggle on/off)
 </pre>
 
 
@@ -478,33 +481,37 @@ function demo_clock(el) {
 }
 
 
-var demo_keyboard_flag;
+var demo_pitchedKeyboard_flag;
 
-function demo_keyboard(el) {
+function demo_pitchedKeyboard(el) {
 	log_demo(el);
-	demo_keyboard_flag= !demo_keyboard_flag;
-	speak("demO kE-bord is " +(demo_keyboard_flag ? "on" : "off"));
+	demo_pitchedKeyboard_flag= !demo_pitchedKeyboard_flag;
+	speak("demO pit_chd kE-bord is " +(demo_pitchedKeyboard_flag ? "on" : "off"));
 
-	if (document.body.onkeydown) return; //init once
+	if (!demo_pitchedKeyboard_flag) {
+		delete document.body.onkeydown;
+		return;
+	}
 
-	var pitch;
-	var pitch_map= {
-		90: 50,  // z
-		88: 60,  // x
-		67: 70,  // c
-		86: 80,  // v
-		66: 90,  // b
-		78: 100, // n
-		77: 110  // m
-	};
+	demo_natoKeyboard_flag= false;
 
-	var sound_obj= {
-		i:"helO"
-	};
+	var
+		pitch,
+		pitch_map= {
+			90: 50,  // z
+			88: 60,  // x
+			67: 70,  // c
+			86: 80,  // v
+			66: 90,  // b
+			78: 100, // n
+			77: 110  // m
+		},
+		sound_obj= {
+			i:"helO"
+		}
+	;
 
-	document.body.onkeydown= function(event){
-		if (!demo_keyboard_flag) return; //->
-
+	document.body.onkeydown= function(event) {
 		event= event || window.event;
 		var keycode= event.charCode || event.keyCode;
 		if (pitch=pitch_map[keycode]) {
@@ -515,10 +522,34 @@ function demo_keyboard(el) {
 
 }
 
+
 function demo_nato(el) {
 	log_demo(el);
 
 	speak($.stephanTalking.translate.nato(document.getElementById("text_ta").value));
+}
+
+
+var demo_natoKeyboard_flag;
+
+function demo_natoKeyboard(el) {
+	log_demo(el);
+	demo_natoKeyboard_flag= !demo_natoKeyboard_flag;
+	speak("demO nAtO kE-bord is " +(demo_natoKeyboard_flag ? "on" : "off"));
+
+	if (!demo_natoKeyboard_flag) {
+		delete document.body.onkeydown;
+		return;
+	}
+
+	demo_pitchedKeyboard_flag= false;
+
+	document.body.onkeydown= function(event){
+		event= event || window.event;
+		var keycode= event.charCode || event.keyCode;
+		var str= String.fromCharCode(keycode);
+		speak( $.stephanTalking.translate.nato(str) );
+	}
 }
 
 </script>
