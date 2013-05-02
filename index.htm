@@ -175,7 +175,7 @@ multiple calls triggered by a timer
 multiple calls triggered by the audio 'ended' event
 
 <a href="#" onclick="demo_clock(this); return false; ">clock</a>
-multiple calls triggered by a 15 sec timer saying the time
+multiple calls triggered by a 15 sec timer saying the time (4 times)
 
 <a href="#" onclick="demo_pitchedKeyboard(this); return false; ">pitched keyboard</a>
 turn keys on bottom row of keyboard (z,x,c,v,b,n,m) into triggers (toggle on/off)
@@ -486,10 +486,10 @@ var demo_pitchedKeyboard_flag;
 function demo_pitchedKeyboard(el) {
 	log_demo(el);
 	demo_pitchedKeyboard_flag= !demo_pitchedKeyboard_flag;
-	speak("demO pit_chd kE-bord is " +(demo_pitchedKeyboard_flag ? "on" : "off"));
+	speak("demO pit-chd kE-bord is " +(demo_pitchedKeyboard_flag ? "on" : "off"));
 
 	if (!demo_pitchedKeyboard_flag) {
-		delete document.body.onkeydown;
+		document.body.onkeydown= null;
 		return;
 	}
 
@@ -535,10 +535,10 @@ var demo_natoKeyboard_flag;
 function demo_natoKeyboard(el) {
 	log_demo(el);
 	demo_natoKeyboard_flag= !demo_natoKeyboard_flag;
-	speak("demO nAtO kE-bord is " +(demo_natoKeyboard_flag ? "on" : "off"));
+	speak("demO nA_tO kE-bord is " +(demo_natoKeyboard_flag ? "on" : "off"));
 
 	if (!demo_natoKeyboard_flag) {
-		delete document.body.onkeydown;
+		document.body.onkeydown= null;
 		return;
 	}
 
