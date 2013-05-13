@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Stephen Talking</title>
+<title>Stephan Talking - jQuery plugin</title>
 
 <style>
 BODY {font:10px verdana; }
@@ -23,6 +23,9 @@ DIV#examples>P {margin:0; };
 <script src="js/jq_stephanTalking_t-numbers.js"></script>
 <script src="js/jq_stephanTalking_t-fancyNumbers.js"></script>
 <script src="js/jq_stephanTalking_t-nato.js"></script>
+<!--
+<script src="js/jq_stephanTalking_t-inflect.js"></script>
+-->
 
 </head>
 <body>
@@ -30,7 +33,7 @@ DIV#examples>P {margin:0; };
 
 
 
-<h1>Stephen Talking - jQuery plugin</h1>
+<h1>Stephan Talking - jQuery plugin</h1>
 
 <p>is a lightweight javascript speech generator -  there also is a <a href="../st/">non jQuery version</a>
 	<a style="float: right; " href="/">alkemis</a>
@@ -55,7 +58,10 @@ nO ekstrnal kalls - just pUr javaskript
 </textarea>
 <br>
 
-translate numbers<input id="t_numbers_input" type="checkbox" checked/>
+translate: numbers<input id="t_numbers_input" type="checkbox" checked/>
+<!--
+inflect<input id="t_inflect_input" type="checkbox" checked/>
+-->
 <button onclick="process_text(); ">speak text</button>
 | <button onclick="process_text('convert'); ">convert to data</button> | 'convert to data' expands controls to each individual character
 </form>
@@ -70,6 +76,10 @@ not available:
 <br>
 to insert short pause use '_' | even shorter pause use '-'
 <br>
+<!--
+inflect: on word level <span class="phoneme">?</span> (up pitch) <span class="phoneme">~</span> (down pitch) <span class="phoneme">!</span> (exclaim) </span> | on syllable level <span class="phoneme">*</span> (emphasis)
+<br>
+-->
 do <a href="#crude fix" onclick="crude_fix(); return false; ">CRUDE FIX</a> on raw text
 <br>
 <br>
@@ -88,12 +98,12 @@ do <a href="#crude fix" onclick="crude_fix(); return false; ">CRUDE FIX</a> on r
 <form id="speech_json_form" onsubmit="return false; " style="clear:both; ">
 <hr>
 <textarea id="json_ta" cols="80" rows="3">
-[{"k":"I","v":1.3,"d":3},{"k":"m"},{"k":""},{"k":"s"},{"k":"t"},{"k":"e"},{"k":"v"},{"k":"a"},{"k":"n"},{"k":""},{"k":"t"},{"k":"a"},{"k":"w"},{"k":"k"},{"k":"i"},{"k":"n"},{"k":"g"},{"k":""}]
+[{"k":"I","v":1.2,"d":3},{"k":"m"},{"k":""},{"k":"s"},{"k":"t"},{"k":"e"},{"k":"v"},{"k":"a"},{"k":"n"},{"k":""},{"k":"t"},{"k":"a"},{"k":"w"},{"k":"k"},{"k":"i"},{"k":"n"},{"k":"g"},{"k":""}]
 </textarea>
 <br>
 <button onclick="speak_json(); ">speak json</button>
 | p(itch) range is -50 .. 0 .. 50
-| v(ol) range is 0.1 .. 0 .. 2.0
+| v(ol) range is 0.1 .. 1 .. 2.0 <!--1.25-->
 | d(ur) range is -5 .. 0 .. 100 (d does +- to the default duration, which is 1 to 4, but wont fall below 1)
 </form>
 
@@ -123,6 +133,12 @@ mon_dA tUs_dA wens_dA thurs_dA frI_dA satur_dA sun_dA
 - can-ton_Es - ling_ yut yE sam sE_ Ung lUk chut baht gawl sup
 -
 jA_kwir_E plug_in
+<!--
+-
+wel, hellO. wel~, hellO?
+-
+hel-lO hel*-lO hel-lO*
+-->
 </div>
 
 
@@ -219,14 +235,15 @@ function process_text(convert_flag) {
 	var text= document.getElementById("text_ta").value;
 
 	if (document.getElementById("t_numbers_input").checked) {
-
-		//if ($.stephanTalking.translate && $.stephanTalking.translate.fancyNumbers) text= $.stephanTalking.translate.fancyNumbers(text);
-
-		if ($.stephanTalking.translate && $.stephanTalking.translate.numbers) text= $.stephanTalking.translate.numbers(text);
-		else console.error("'numbers' translator (jq_stephanTalking_t-numbers.js) not loaded");
+		text= $.stephanTalking.translate.numbers(text);
 	}
 
 	if (!convert_flag) {
+		/*
+		if (document.getElementById("t_inflect_input").checked) {
+			text= $.stephanTalking.translate.inflect(text); //no longer text, st obj!
+		}
+		*/
 		speak(text);
 
 	} else {
@@ -277,6 +294,12 @@ function process_objs(convert_flag) {
 
 			volume= range_num(DIV.querySelector("INPUT.volume"), -9, 10);
 			if (volume) obj.v= (10 +volume) /10;
+			/*
+			if (volume) {
+				obj.v= (10 +volume) /10;
+				if (obj.v>1) obj.v= 1 +(obj.v -1)/4;
+			}
+			*/
 		}
 
 		duration= range_num(DIV.querySelector("INPUT.duration"), -5, 100);
@@ -294,10 +317,12 @@ function speak(input) {
 	var
 		pitch= 50  +validate("pitch_input")  *4,  // 50 | 75  | 450
 		cadence= 1  -validate("cadence_input") *.007, //1.0 | 0 8 | 0.3
-		vol=  0.3 +validate("vol_input")   *.007 //0.3 | 0.7 | 1.0
+		vol=  0.3 +validate("vol_input")   *.007, //0.3 | 0.7 | 1.0
+		param_obj= {i:input, p:pitch, c:cadence, v:vol}
 	;
 
-	$.stephanTalking.speak({i:input, p:pitch, c:cadence, v:vol});
+	//console.log("speak: ", param_obj);
+	$.stephanTalking.speak(param_obj);
 
 
 
@@ -547,7 +572,7 @@ function demo_natoKeyboard(el) {
 	document.body.onkeydown= function(event){
 		event= event || window.event;
 		var keycode= event.charCode || event.keyCode;
-		var str= String.fromCharCode(keycode);
+		var str= String.fromCharCode(keycode); if (keycode==190) str= "."; //'period' doesnt work - eh just patch it
 		speak( $.stephanTalking.translate.nato(str) );
 	}
 }
